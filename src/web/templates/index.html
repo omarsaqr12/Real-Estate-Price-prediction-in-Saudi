@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real Estate Price Prediction</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f5f5f5;
+        color: #333;
+        line-height: 1.6;
+      }
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      }
+      h1 {
+        color: #2c3e50;
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #eee;
+      }
+      label {
+        display: block;
+        margin: 10px 0 5px;
+        font-weight: 500;
+      }
+      input[type="number"],
+      select,
+      textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-sizing: border-box;
+        font-size: 15px;
+      }
+      .section {
+        margin-bottom: 30px;
+        background: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+      }
+      h3 {
+        margin-top: 0;
+        color: #3498db;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 10px;
+      }
+      button {
+        padding: 12px 24px;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-right: 10px;
+        font-size: 16px;
+        transition: background-color 0.3s;
+      }
+      button:hover {
+        background-color: #2980b9;
+      }
+      button.clear {
+        background-color: #e74c3c;
+      }
+      button.clear:hover {
+        background-color: #c0392b;
+      }
+      .searchable-select {
+        position: relative;
+      }
+      .searchable-select input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 8px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .searchable-select select {
+        width: 100%;
+      }
+      .dropdown-list {
+        position: absolute;
+        width: 100%;
+        max-height: 300px;
+        overflow-y: auto;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        z-index: 100;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        display: none;
+      }
+      .dropdown-item {
+        padding: 10px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+      }
+      .dropdown-item:hover, .dropdown-item.active {
+        background-color: #f0f7ff;
+      }
+      .dropdown-item .highlight {
+        background-color: #ffff99;
+        font-weight: bold;
+      }
+      .no-results {
+        padding: 10px;
+        color: #999;
+        font-style: italic;
+        text-align: center;
+      }
+      .flash-messages {
+        margin: 10px 0 20px; 
+        padding: 15px; 
+        background-color: #4CAF50; 
+        color: white; 
+        border-radius: 5px;
+      }
+      .checkbox-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+      .checkbox-label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+      }
+      .checkbox-label input {
+        margin-right: 8px;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+      }
+      .prediction-result {
+        background-color: #e8f4f8;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+        text-align: center;
+        border-left: 5px solid #3498db;
+      }
+      .prediction-result h2 {
+        margin-top: 0;
+        color: #2c3e50;
+      }
+      .feedback-section {
+        margin-top: 30px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+      }
+      .btn-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+      }
+      @media (max-width: 768px) {
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Real Estate Price Prediction</h1>
+
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="flash-messages">
+            {% for message in messages %}
+              <p style="margin: 0;">{{ message }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" id="predictionForm">
+        <!-- Numerical Inputs -->
+        <div class="section">
+          <h3>Numerical Features</h3>
+          <div class="form-grid">
+            <div>
+              <label>Beds:</label>
+              <input type="number" name="beds" min="0" value="{{ request.form.get('beds', '') }}"/>
+            </div>
+            <div>
+              <label>Living Rooms:</label>
+              <input type="number" name="livings" min="0" value="{{ request.form.get('livings', '') }}"/>
+            </div>
+            <div>
+              <label>Bathrooms (WC):</label>
+              <input type="number" name="wc" min="0" value="{{ request.form.get('wc', '') }}"/>
+            </div>
+            <div>
+              <label>Area (sqm):</label>
+              <input type="number" name="area" min="0" required value="{{ request.form.get('area', '') }}"/>
+            </div>
+            <div>
+              <label>Street Width (m):</label>
+              <input type="number" name="street_width" min="0" step="any" value="{{ request.form.get('street_width', '') }}"/>
+            </div>
+            <div>
+              <label>User Review (rating):</label>
+              <input type="number" name="user.review" min="0" step="any" value="{{ request.form.get('user.review', '') }}"/>
+            </div>
+            <div>
+              <label>Width (m):</label>
+              <input type="number" name="width" min="0" step="any" value="{{ request.form.get('width', '') }}"/>
+            </div>
+            <div>
+              <label>Length (m):</label>
+              <input type="number" name="length" min="0" step="any" value="{{ request.form.get('length', '') }}"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Categorical Inputs -->
+        <div class="section">
+          <h3>Categorical Features</h3>
+          <div class="form-grid">
+            <div>
+              <label>Category:</label>
+              <select name="category" required>
+                {% for key, value in category_mapping.items() %}
+                <option value="{{ key }}" {% if request.form.get('category') == key %}selected{% endif %}>{{ value }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label>Street Direction:</label>
+              <select name="street_direction" required>
+                {% for cat in street_direction_categories %}
+                <option value="{{ cat }}" {% if request.form.get('street_direction') == cat %}selected{% endif %}>
+                  {{ cat }} {% if cat == '1' %}(North){% elif cat == '2'
+                  %}(North-East){% elif cat == '3' %}(East){% elif cat == '4'
+                  %}(South-East){% elif cat == '5' %}(South){% elif cat == '6'
+                  %}(South-West){% elif cat == '7' %}(West){% elif cat == '8'
+                  %}(North-West){% elif cat == '9' %}(Other){% elif cat == '10'
+                  %}(Unknown){% endif %}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label>City:</label>
+              <div class="searchable-select">
+                <input
+                  type="text"
+                  id="citySearch"
+                  placeholder="Search city..."
+                  autocomplete="off"
+                />
+                <div id="cityDropdown" class="dropdown-list"></div>
+                <select
+                  name="city_id"
+                  id="city_id"
+                  required
+                  onchange="updateDistricts()"
+                  style="display: none;"
+                >
+                  {% for key, value in city_mapping.items() %}
+                  <option value="{{ key }}" {% if request.form.get('city_id') == key %}selected{% endif %}>{{ value }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label>District:</label>
+              <div class="searchable-select">
+                <input
+                  type="text"
+                  id="districtSearch"
+                  placeholder="Search district..."
+                  autocomplete="off"
+                />
+                <div id="districtDropdown" class="dropdown-list"></div>
+                <select name="district_id" id="district_id" required style="display: none;"></select>
+              </div>
+            </div>
+            <div>
+              <label>Advertiser Type:</label>
+              <select name="advertiser_type" required>
+                {% for cat in advertiser_type_categories %}
+                <option value="{{ cat }}" {% if request.form.get('advertiser_type') == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Text Input -->
+        <div class="section">
+          <h3>Description</h3>
+          <label>Description:</label>
+          <textarea
+            name="description"
+            rows="4"
+            placeholder="Enter property description (optional)"
+          >{{ request.form.get('description', '') }}</textarea>
+        </div>
+
+        <!-- Boolean Inputs -->
+        <div class="section">
+          <h3>Additional Features</h3>
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" name="imgs_bool" {% if 'imgs_bool' in request.form %}checked{% endif %} /> 
+              Has Property Images
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="user.img_bool" {% if 'user.img_bool' in request.form %}checked{% endif %} /> 
+              Has User Image
+            </label>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button type="submit">Predict Price</button>
+          <a href="/clear" class="clear" style="text-decoration: none; padding: 12px 24px; background-color: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; display: inline-block;">Clear Form</a>
+        </div>
+      </form>
+
+      {% if prediction %}
+      <div class="prediction-result">
+        <h2>Predicted Price: {{ prediction|round(2) }} SAR</h2>
+      </div>
+      
+      <!-- Feedback Form -->
+      <div class="feedback-section">
+        <h3>Provide Feedback</h3>
+        <p>If you know the actual price, please provide it below to help improve our model:</p>
+        <form method="POST" action="/feedback">
+          <input type="hidden" name="predicted_price" value="{{ prediction }}">
+          <!-- Pass all the form data as hidden fields -->
+          {% for key, value in request.form.items() %}
+          <input type="hidden" name="input_{{ key }}" value="{{ value }}">
+          {% endfor %}
+          
+          <label>Actual Price (SAR): 
+            <input type="number" name="actual_price" min="0" required>
+          </label>
+          <button type="submit" style="margin-top: 15px; background-color: #2196F3;">Submit Feedback</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+
+    <script>
+      var district_mapping = {{ district_mapping_json|safe }};
+      var selected_district = "{{ request.form.get('district_id', '') }}";
+      var city_mapping = {};
+      
+      // Convert city_mapping from server to JavaScript object
+      {% for key, value in city_mapping.items() %}
+        city_mapping["{{ key }}"] = "{{ value }}";
+      {% endfor %}
+
+      // Initialize the selected city
+      var selected_city = "{{ request.form.get('city_id', '') }}";
+      if (!selected_city) {
+        // Set default if none selected
+        var citySelect = document.getElementById('city_id');
+        if (citySelect.options.length > 0) {
+          selected_city = citySelect.options[0].value;
+        }
+      }
+
+      // Enhanced dropdown functionality
+      document.addEventListener('DOMContentLoaded', function() {
+        initSmartDropdown('citySearch', 'cityDropdown', 'city_id', city_mapping);
+        updateDistricts();
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!e.target.closest('.searchable-select')) {
+            document.querySelectorAll('.dropdown-list').forEach(function(dropdown) {
+              dropdown.style.display = 'none';
+            });
+          }
+        });
+      });
+
+      function initSmartDropdown(inputId, dropdownId, selectId, dataMapping) {
+        var input = document.getElementById(inputId);
+        var dropdown = document.getElementById(dropdownId);
+        var select = document.getElementById(selectId);
+        
+        // Set initial value
+        var selectedValue = select.value;
+        if (selectedValue && dataMapping[selectedValue]) {
+          input.value = dataMapping[selectedValue];
+        }
+        
+        // Handle input focus
+        input.addEventListener('focus', function() {
+          populateDropdown(input, dropdown, select, dataMapping, '');
+          dropdown.style.display = 'block';
+        });
+        
+        // Handle input changes
+        input.addEventListener('input', function() {
+          populateDropdown(input, dropdown, select, dataMapping, input.value);
+          dropdown.style.display = 'block';
+        });
+        
+        // Handle keyboard navigation
+        input.addEventListener('keydown', function(e) {
+          handleKeyboardNavigation(e, dropdown, input, select);
+        });
+      }
+      
+      function populateDropdown(input, dropdown, select, dataMapping, filterText) {
+        dropdown.innerHTML = '';
+        var filter = filterText.toLowerCase();
+        var items = [];
+        var exactMatch = false;
+        
+        // Create dropdown items from data
+        for (var key in dataMapping) {
+          var value = dataMapping[key];
+          var lowerValue = value.toLowerCase();
+          
+          if (filter === '' || lowerValue.includes(filter)) {
+            // Check for exact match
+            if (lowerValue === filter) {
+              exactMatch = true;
+            }
+            
+            // Create item element
+            var itemElement = document.createElement('div');
+            itemElement.className = 'dropdown-item';
+            itemElement.setAttribute('data-value', key);
+            
+            // Highlight matching part
+            if (filter !== '') {
+              var highlightedText = highlightText(value, filter);
+              itemElement.innerHTML = highlightedText;
+            } else {
+              itemElement.textContent = value;
+            }
+            
+            // Handle item click
+            itemElement.addEventListener('click', function() {
+              var selectedKey = this.getAttribute('data-value');
+              input.value = dataMapping[selectedKey];
+              select.value = selectedKey;
+              dropdown.style.display = 'none';
+              
+              // Trigger change event
+              select.dispatchEvent(new Event('change'));
+              
+              if (select.id === 'city_id') {
+                selected_city = selectedKey;
+              } else if (select.id === 'district_id') {
+                selected_district = selectedKey;
+              }
+            });
+            
+            items.push({
+              element: itemElement,
+              lowerValue: lowerValue,
+              originalValue: value,
+              key: key
+            });
+          }
+        }
+        
+        // Sort items: exact matches first, then starting with the filter, then the rest
+        items.sort(function(a, b) {
+          if (a.lowerValue === filter && b.lowerValue !== filter) return -1;
+          if (a.lowerValue !== filter && b.lowerValue === filter) return 1;
+          if (a.lowerValue.startsWith(filter) && !b.lowerValue.startsWith(filter)) return -1;
+          if (!a.lowerValue.startsWith(filter) && b.lowerValue.startsWith(filter)) return 1;
+          return a.originalValue.localeCompare(b.originalValue);
+        });
+        
+        // Add items to dropdown
+        if (items.length > 0) {
+          items.forEach(function(item) {
+            dropdown.appendChild(item.element);
+          });
+        } else {
+          var noResults = document.createElement('div');
+          noResults.className = 'no-results';
+          noResults.textContent = 'No matches found';
+          dropdown.appendChild(noResults);
+        }
+      }
+      
+      function highlightText(text, query) {
+        var lowerText = text.toLowerCase();
+        var lowerQuery = query.toLowerCase();
+        var index = lowerText.indexOf(lowerQuery);
+        
+        if (index >= 0) {
+          var before = text.substring(0, index);
+          var match = text.substring(index, index + query.length);
+          var after = text.substring(index + query.length);
+          return before + '<span class="highlight">' + match + '</span>' + after;
+        }
+        
+        return text;
+      }
+      
+      function handleKeyboardNavigation(e, dropdown, input, select) {
+        var items = dropdown.querySelectorAll('.dropdown-item');
+        var activeItem = dropdown.querySelector('.dropdown-item.active');
+        var activeIndex = -1;
+        
+        // Find active index
+        for (var i = 0; i < items.length; i++) {
+          if (items[i] === activeItem) {
+            activeIndex = i;
+            break;
+          }
+        }
+        
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (dropdown.style.display === 'none') {
+            dropdown.style.display = 'block';
+          } else {
+            if (activeIndex < items.length - 1) {
+              if (activeItem) activeItem.classList.remove('active');
+              items[activeIndex + 1].classList.add('active');
+              items[activeIndex + 1].scrollIntoView({ block: 'nearest' });
+            }
+          }
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (activeIndex > 0) {
+            if (activeItem) activeItem.classList.remove('active');
+            items[activeIndex - 1].classList.add('active');
+            items[activeIndex - 1].scrollIntoView({ block: 'nearest' });
+          }
+        } else if (e.key === 'Enter' && activeItem) {
+          e.preventDefault();
+          activeItem.click();
+        } else if (e.key === 'Escape') {
+          dropdown.style.display = 'none';
+        }
+      }
+
+      function updateDistricts() {
+        var city_id = document.getElementById('city_id').value;
+        var districts = district_mapping[city_id] || {};
+        var district_select = document.getElementById('district_id');
+        
+        // Clear existing options
+        district_select.innerHTML = '';
+        
+        // Create district-specific mapping for the current city
+        var currentDistrictMapping = {};
+        
+        // Populate select element with district options
+        for (var key in districts) {
+          var option = document.createElement('option');
+          option.value = key;
+          option.text = districts[key];
+          currentDistrictMapping[key] = districts[key];
+          
+          if (key === selected_district) {
+            option.selected = true;
+          }
+          district_select.appendChild(option);
+        }
+        
+        // Initialize district dropdown with the new mapping
+        initSmartDropdown('districtSearch', 'districtDropdown', 'district_id', currentDistrictMapping);
+        
+        // Clear district search field
+        var districtSearch = document.getElementById('districtSearch');
+        
+        // Set district input to show selected value if there is one
+        if (selected_district && currentDistrictMapping[selected_district]) {
+          districtSearch.value = currentDistrictMapping[selected_district];
+        } else {
+          districtSearch.value = '';
+          selected_district = '';
+          
+          // Select first option as default if available
+          if (district_select.options.length > 0) {
+            district_select.selectedIndex = 0;
+            selected_district = district_select.options[0].value;
+            districtSearch.value = district_select.options[0].text;
+          }
+        }
+      }
+
+      function clearForm() {
+        document.getElementById('predictionForm').reset();
+        
+        // Reset variables
+        selected_district = "";
+        
+        // Update city and district dropdowns
+        var citySelect = document.getElementById('city_id');
+        document.getElementById('citySearch').value = '';
+        
+        if (citySelect.options.length > 0) {
+          citySelect.selectedIndex = 0;
+          selected_city = citySelect.options[0].value;
+          document.getElementById('citySearch').value = citySelect.options[0].text;
+        }
+        
+        updateDistricts();
+        
+        // Hide dropdowns
+        document.querySelectorAll('.dropdown-list').forEach(function(dropdown) {
+          dropdown.style.display = 'none';
+        });
+      }
+    </script>
+  </body>
+</html>
