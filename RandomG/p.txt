@@ -1,6 +1,0 @@
-Predictions saved to random_predictions.csv
-
-Prediction Summary:
-Average Error Percentage: 11.11%
-Min Error Percentage: 0.07%
-Max Error Percentage: 99.75%
