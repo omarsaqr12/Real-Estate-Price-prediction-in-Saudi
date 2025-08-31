@@ -41,14 +41,12 @@ Real-Estate-Price-prediction-in-Saudi/
 ### Installation
 
 1. **Clone the repository:**
-
    ```bash
-   git clone https://github.com/yourusername/Real-Estate-Price-prediction-in-Saudi.git
+   git clone https://github.com/omarsaqr12/Real-Estate-Price-prediction-in-Saudi.git
    cd Real-Estate-Price-prediction-in-Saudi
    ```
 
 2. **Install dependencies:**
-
    ```bash
    pip install -r requirements.txt
    ```
@@ -60,13 +58,11 @@ Real-Estate-Price-prediction-in-Saudi/
 ### Running the Application
 
 1. **Start the server:**
-
    ```bash
    python src/web/server.py
    ```
 
 2. **Start the client (in a separate terminal):**
-
    ```bash
    python src/web/client.py
    ```
@@ -106,13 +102,11 @@ python src/scripts/generate_samples.py
 ## 📁 File Descriptions
 
 ### Core Application
-
 - `src/web/server.py` - Flask server hosting the ML model and APIs
 - `src/web/client.py` - Web client with user interface
 - `src/web/templates/index.html` - HTML template for the client interface
 
 ### Machine Learning
-
 - `src/models/price_prediction_model.keras` - Trained neural network model
 - `src/models/preprocessor.pkl` - Feature preprocessing pipeline
 - `src/models/y_scaler.pkl` - Target variable scaler
@@ -120,13 +114,11 @@ python src/scripts/generate_samples.py
 - `src/scripts/preprocess_data.py` - Data preprocessing script (renamed from lamm.py)
 
 ### Data Files
-
 - `src/data/category_mapping.json` - Property category mappings
 - `src/data/city_mapping.json` - City ID mappings
 - `src/data/district_mapping.json` - District ID mappings
 
 ### Documentation
-
 - `docs/performance_metrics.md` - Detailed model performance metrics
 - `docs/feedback_notes.md` - Notes on model improvement
 - `docs/dataset_info.md` - Information about the dataset
@@ -134,15 +126,12 @@ python src/scripts/generate_samples.py
 ## 🌐 API Documentation
 
 ### GET /api/metadata
-
 Returns metadata required by the client application including category mappings, city mappings, etc.
 
 ### POST /api/predict
-
 Accepts property features and returns a price prediction.
 
 **Request body:**
-
 ```json
 {
   "beds": 3,
@@ -156,7 +145,6 @@ Accepts property features and returns a price prediction.
 ```
 
 **Response:**
-
 ```json
 {
   "predicted_price": 500000
@@ -164,11 +152,9 @@ Accepts property features and returns a price prediction.
 ```
 
 ### POST /api/feedback
-
 Submits feedback for a prediction to improve the model.
 
 **Request body:**
-
 ```json
 {
   "predicted_price": 500000,
@@ -201,8 +187,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-- **Project Link**: [https://github.com/yourusername/Real-Estate-Price-prediction-in-Saudi](https://github.com/yourusername/Real-Estate-Price-prediction-in-Saudi)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/Real-Estate-Price-prediction-in-Saudi/issues)
+- **Project Link**: [https://github.com/omarsaqr12/Real-Estate-Price-prediction-in-Saudi](https://github.com/omarsaqr12/Real-Estate-Price-prediction-in-Saudi)
+- **Issues**: [GitHub Issues](https://github.com/omarsaqr12/Real-Estate-Price-prediction-in-Saudi/issues)
 
 ---
 

@@ -14,7 +14,7 @@ setup(
     description="A machine learning system for predicting real estate prices in Saudi Arabia",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/Real-Estate-Price-prediction-in-Saudi",
+    url="https://github.com/omarsaqr12/Real-Estate-Price-prediction-in-Saudi",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 4 - Beta",
