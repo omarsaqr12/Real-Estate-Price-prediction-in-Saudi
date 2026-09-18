@@ -1,43 +1,53 @@
-import sqlite3
-import pandas as pd
+"""Add Arabic text lemmatization to an existing PandA.db Listings table.
+
+This script modifies the input database in place. Back it up before running.
+"""
+from pathlib import Path
 import re
+import sqlite3
+
+# Refuse to create an empty SQLite file when the expected dataset is absent.
+db_path = Path("PandA.db")
+if not db_path.is_file():
+    raise FileNotFoundError(
+        f"Expected existing training database at {db_path.resolve()}. "
+        "Obtain a permitted copy and back it up before preprocessing."
+    )
+
+import pandas as pd
 from camel_tools.disambig.mle import MLEDisambiguator
 
-# Initialize the MSA disambiguator
+# Initialize the MSA disambiguator only after checking that input exists.
 mle_msa = MLEDisambiguator.pretrained("calima-msa-r13")
 
-# Connect to the SQLite database
-db_path = "database.db"  # Replace with your actual database file name
-conn = sqlite3.connect(db_path)
+# Connect to the same database filename used by train_model.py.
+conn = sqlite3.connect(str(db_path))
 cursor = conn.cursor()
 
-# Try adding the new column if it doesn't already exist
+# An existing column is fine; other SQLite failures must be reported.
 try:
     cursor.execute("ALTER TABLE Listings ADD COLUMN content_lemmatized TEXT")
-except sqlite3.OperationalError:
+except sqlite3.OperationalError as exc:
+    if "duplicate column name" not in str(exc).lower():
+        raise
     print("Column 'content_lemmatized' already exists. Continuing...")
 
-# Read content and rowid from the database
 query = "SELECT rowid, content FROM Listings"
 data = pd.read_sql_query(query, conn)
-
-# Fill NaN values with empty strings
 data["content"] = data["content"].fillna("").astype(str)
 
-# Helper function to clean suspicious characters
+
 def safe_content(text):
-    text = text.replace('\\', ' ')  # Remove problematic backslashes
-    text = re.sub(r'[^\w\s\u0600-\u06FF]', ' ', text)  # Keep Arabic, digits, and whitespace
+    text = text.replace('\\', ' ')
+    text = re.sub(r'[^\w\s\u0600-\u06FF]', ' ', text)
     return text.strip()
 
-# Lemmatize or fallback to original if error occurs
+
 lemmatized_results = []
 for i, row in data.iterrows():
-
     original = row["content"]
     cleaned = safe_content(original)
     print(f"Processing row {i}...")
-
     if cleaned:
         try:
             analysis = mle_msa.disambiguate(cleaned.split())
@@ -46,25 +56,20 @@ for i, row in data.iterrows():
                 for token in analysis
             ]
             lemmatized = " ".join(lemmas)
-        except Exception as e:
-            print(f"Skipping row {i} due to error: {e}")
-            lemmatized = original  # Fallback to original
+        except Exception as exc:
+            print(f"Skipping row {i} due to error: {exc}")
+            lemmatized = original
     else:
-        lemmatized = ""  # Empty content remains empty
-
+        lemmatized = ""
     lemmatized_results.append((lemmatized, row["rowid"]))
 
-# Bulk update in database
 for lemmatized_text, rowid in lemmatized_results:
     cursor.execute(
         "UPDATE Listings SET content_lemmatized = ? WHERE rowid = ?",
         (lemmatized_text, rowid)
     )
 
-# Commit and close connection
 conn.commit()
 conn.close()
-
-# Optionally print summary
-for lemmatized_text, rowid in lemmatized_results[:10]:  # Show first 10
+for lemmatized_text, rowid in lemmatized_results[:10]:
     print(f"Row ID: {rowid} | Lemmatized: {lemmatized_text}")
