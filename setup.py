@@ -1,44 +1,21 @@
-from setuptools import setup, find_packages
+"""Minimal source packaging metadata; this does not bundle model or dataset assets."""
+from pathlib import Path
+from setuptools import find_packages, setup
 
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
-
-with open("requirements.txt", "r", encoding="utf-8") as fh:
-    requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
+ROOT = Path(__file__).parent
+requirements = [line.strip() for line in (ROOT / "requirements.txt").read_text().splitlines()
+                if line.strip() and not line.lstrip().startswith("#")]
 
 setup(
     name="saudi-real-estate-prediction",
-    version="1.0.0",
-    author="Your Name",
-    author_email="your.email@example.com",
-    description="A machine learning system for predicting real estate prices in Saudi Arabia",
-    long_description=long_description,
+    version="0.1.0",
+    author="Omar Saqr and Aabed Elghadbaan",
+    description="Research prototype for Saudi real-estate price prediction",
+    long_description=(ROOT / "README.md").read_text(encoding="utf-8"),
     long_description_content_type="text/markdown",
     url="https://github.com/omarsaqr12/Real-Estate-Price-prediction-in-Saudi",
     packages=find_packages(),
-    classifiers=[
-        "Development Status :: 4 - Beta",
-        "Intended Audience :: Developers",
-        "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Topic :: Scientific/Engineering :: Artificial Intelligence",
-        "Topic :: Scientific/Engineering :: Information Analysis",
-    ],
     python_requires=">=3.8",
     install_requires=requirements,
     include_package_data=True,
-    package_data={
-        "": ["*.json", "*.pkl", "*.keras"],
-    },
-    entry_points={
-        "console_scripts": [
-            "real-estate-server=src.web.server:main",
-            "real-estate-client=src.web.client:main",
-        ],
-    },
 )
