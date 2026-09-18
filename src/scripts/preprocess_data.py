@@ -6,9 +6,6 @@ from pathlib import Path
 import re
 import sqlite3
 
-import pandas as pd
-from camel_tools.disambig.mle import MLEDisambiguator
-
 # Refuse to create an empty SQLite file when the expected dataset is absent.
 db_path = Path("PandA.db")
 if not db_path.is_file():
@@ -16,6 +13,9 @@ if not db_path.is_file():
         f"Expected existing training database at {db_path.resolve()}. "
         "Obtain a permitted copy and back it up before preprocessing."
     )
+
+import pandas as pd
+from camel_tools.disambig.mle import MLEDisambiguator
 
 # Initialize the MSA disambiguator only after checking that input exists.
 mle_msa = MLEDisambiguator.pretrained("calima-msa-r13")
