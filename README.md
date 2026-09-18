@@ -6,7 +6,7 @@ A Python project exploring **property-listing price regression** using numeric p
 
 ## Architecture and source map
 
-1. [`src/scripts/preprocess_data.py`](src/scripts/preprocess_data.py): optional Arabic text lemmatization in a SQLite `Listings` table (mutates the specified database; back it up first).
+1. [`src/scripts/preprocess_data.py`](src/scripts/preprocess_data.py): optional Arabic text lemmatization in the existing `PandA.db` SQLite `Listings` table (modifies the database; back it up first). It refuses a missing database instead of silently creating an empty file.
 2. [`src/scripts/train_model.py`](src/scripts/train_model.py): reads `PandA.db`, splits listings, fits numeric/categorical/TF-IDF preprocessing on training data, trains a dense regression network, reports test metrics, and writes three artifacts into the **current working directory**.
 3. [`src/web/server.py`](src/web/server.py): loads the three artifacts and three JSON maps **from the current working directory**, then exposes `/api/metadata`, `/api/predict`, and `/api/feedback` on port 5000.
 4. [`src/web/client.py`](src/web/client.py) and [`src/web/templates/index.html`](src/web/templates/index.html): Arabic-text processing and a browser form on port 8000, making requests to the API on port 5000.
@@ -23,7 +23,7 @@ python -m unittest discover -s tests -v
 python src/scripts/check_assets.py --mode train
 ```
 
-Get the historical `PandA.db` dataset from the [originally documented external folder](https://drive.google.com/drive/folders/1PT3MuIW0eej5w4jTOENe_C3g1o3o7LdN) **only if you have access and permission**. Its current availability, provenance, license and contents have not been independently verified. Put it at the repository root; inspect its tables, columns and permissions before executing preprocessing or training. `src/scripts/preprocess_data.py` currently uses the separate filename `database.db`, so explicitly reconcile/backup the database rather than assuming these scripts share a file.
+Get the historical `PandA.db` dataset from the [originally documented external folder](https://drive.google.com/drive/folders/1PT3MuIW0eej5w4jTOENe_C3g1o3o7LdN) **only if you have access and permission**. Its current availability, provenance, license and contents have not been independently verified. Put it at the repository root; inspect its tables, columns and permissions before executing preprocessing or training. Preprocessing and training now reference the same `PandA.db` filename. The preprocessing script **mutates this file in place**, so make a backup and review the table schema before running it.
 
 After installing dependencies and providing a compatible, preprocessed database, the historical training command is `python src/scripts/train_model.py`. Training is expensive and **was not run for this review**. It writes `price_prediction_model.keras`, `preprocessor.pkl` and `y_scaler.pkl` in the working directory. Do not load model or pickle files from untrusted sources.
 
@@ -37,7 +37,7 @@ The previous README also discussed nine candidate algorithms and five-fold cross
 
 ## Known defects / development priorities
 
-- The database-name mismatch (`database.db` versus `PandA.db`) and absence of model assets block a turnkey installation. The file-presence checker does not verify model compatibility.
+- The database path discrepancy is corrected in the preprocessing script, but the database and model assets remain absent, blocking a turnkey installation. The file-presence checker does not verify dataset schema or model compatibility.
 - The server assumes specific fitted categorical encoder columns, while the training script allows missing input columns; the same feature schema must be verified against the real database before claiming prediction compatibility.
 - Feedback can be submitted without authentication or linkage to a verified sale. Automatic fine-tuning on selectively submitted, potentially inaccurate examples is **experimental and not validated**; the 20% deviation threshold is not evidence that the system improves.
 - `setup.py` describes source packaging only; no non-existent CLI entry points or unprovided license grant are claimed. The repository has no `LICENSE` file; permission to reuse data and other assets must be checked separately.
